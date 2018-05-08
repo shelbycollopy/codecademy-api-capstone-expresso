@@ -27,7 +27,7 @@ employeesRouter.param('employeeId', (req, res, next, employeeId) => {
   });
 });
 
-// GET Routes
+// GET Route(s)
 employeesRouter.get('/', (req, res, next) => {
 
   db.all('SELECT * FROM Employee WHERE Employee.is_current_employee = 1', (error, employees) => {
@@ -44,7 +44,7 @@ employeesRouter.get('/:employeeId', (req, res) => {
   res.status(200).json({ employee })
 });
 
-// POST Routes
+// POST Route(s)
 employeesRouter.post('/', (req, res, next) => {
 
   const {
@@ -85,7 +85,7 @@ employeesRouter.post('/', (req, res, next) => {
     });
 });
 
-// PUT Routes
+// PUT Route(s)
 employeesRouter.put('/:employeeId', (req, res, next) => {
 
     const {
@@ -95,6 +95,8 @@ employeesRouter.put('/:employeeId', (req, res, next) => {
     } = req.body.employee;
 
     const isCurrentEmployee = req.body.employee.isCurrentEmployee === 0 ? 0 : 1;
+
+    const { employeeId } = req.params
 
     if (!name || !position || !wage || !isCurrentEmployee) {
       return res.sendStatus(400);
@@ -112,14 +114,15 @@ employeesRouter.put('/:employeeId', (req, res, next) => {
       $position: position,
       $wage: wage,
       $isCurrentEmployee: isCurrentEmployee,
-      $employeeId: req.params.employeeId
+      $employeeId: employeeId
     };
 
     db.run(sql, values, (error) => {
       if (error) {
         next(error);
       } else {
-        db.get(`SELECT * FROM Employee WHERE Employee.id = ${req.params.employeeId}`,
+        db.get(`SELECT * FROM Employee WHERE ` +
+          `Employee.id = ${employeeId}`,
           (error, employee) => {
             res.status(200).json({ employee });
           });
@@ -127,19 +130,22 @@ employeesRouter.put('/:employeeId', (req, res, next) => {
     });
 });
 
-// DELETE Routes
+// DELETE Route(s)
 employeesRouter.delete('/:employeeId', (req, res, next) => {
+
+  const { employeeId } = req.params;
 
   const sql = 'UPDATE Employee SET ' +
     'is_current_employee = 0 ' +
     'WHERE Employee.id = $employeeId ';
-  const values = { $employeeId: req.params.employeeId};
+  const values = { $employeeId: employeeId};
 
   db.run(sql, values, (error) => {
     if (error) {
       next(error);
     } else {
-      db.get(`SELECT * FROM Employee WHERE Employee.id = ${req.params.employeeId}`,
+      db.get(`SELECT * FROM Employee WHERE ` +
+        `Employee.id = ${employeeId}`,
         (error, employee) => {
           res.status(200).json({ employee });
         });
