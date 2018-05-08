@@ -59,7 +59,9 @@ employeesRouter.post('/', (req, res, next) => {
     return res.sendStatus(400);
   }
 
-  const sql = 'INSERT INTO Employee (name, position, wage, is_current_employee) VALUES ($name, $position, $wage, $isCurrentEmployee)';
+  const sql = 'INSERT INTO Employee ' +
+    '(name, position, wage, is_current_employee) ' +
+    'VALUES ($name, $position, $wage, $isCurrentEmployee)';
 
   const values = {
     $name: name,
@@ -98,7 +100,12 @@ employeesRouter.put('/:employeeId', (req, res, next) => {
       return res.sendStatus(400);
     }
 
-    const sql = 'UPDATE Employee SET name = $name, position = $position, wage = $wage, is_current_employee = $isCurrentEmployee WHERE Employee.id = $employeeId';
+    const sql = 'UPDATE Employee SET ' +
+      'name = $name, ' +
+      'position = $position, ' +
+      'wage = $wage, ' +
+      'is_current_employee = $isCurrentEmployee ' +
+      'WHERE Employee.id = $employeeId ';
 
     const values = {
       $name: name,
@@ -122,7 +129,10 @@ employeesRouter.put('/:employeeId', (req, res, next) => {
 
 // DELETE Routes
 employeesRouter.delete('/:employeeId', (req, res, next) => {
-  const sql = 'UPDATE Employee SET is_current_employee = 0 WHERE Employee.id = $employeeId';
+
+  const sql = 'UPDATE Employee SET ' +
+    'is_current_employee = 0 ' +
+    'WHERE Employee.id = $employeeId ';
   const values = { $employeeId: req.params.employeeId};
 
   db.run(sql, values, (error) => {
