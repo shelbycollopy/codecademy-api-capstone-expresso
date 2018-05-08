@@ -1,5 +1,5 @@
 const express = require('express');
-const employeesRouter = express.Router();
+const employeesRouter = express.Router({ mergeParams: true });
 const timesheetsRouter = require('./timesheets.js');
 
 // Database
@@ -7,7 +7,7 @@ const sqlite3 = require('sqlite3');
 const db = new sqlite3.Database(process.env.TEST_DATABASE || './database.sqlite');
 
 // /timesheets Route
-employeesRouter.use('/:employeedId/timesheets', timesheetsRouter);
+employeesRouter.use('/:employeeId/timesheets', timesheetsRouter);
 
 // Params
 employeesRouter.param('employeeId', (req, res, next, employeeId) => {
@@ -34,13 +34,14 @@ employeesRouter.get('/', (req, res, next) => {
     if (error) {
       next(error);
     } else {
-      res.status(200).json({ employees: employees });
+      res.status(200).json({ employees });
     }
   });
 });
 
-employeesRouter.get('/:employeeId', (req, res, next) => {
-  res.status(200).json({ employee: req.employee })
+employeesRouter.get('/:employeeId', (req, res) => {
+  const { employee } = req;
+  res.status(200).json({ employee })
 });
 
 // POST Routes
@@ -58,7 +59,9 @@ employeesRouter.post('/', (req, res, next) => {
     return res.sendStatus(400);
   }
 
-  const sql = 'INSERT INTO Employee (name, position, wage, is_current_employee) VALUES ($name, $position, $wage, $isCurrentEmployee)';
+  const sql = 'INSERT INTO Employee ' +
+    '(name, position, wage, is_current_employee) ' +
+    'VALUES ($name, $position, $wage, $isCurrentEmployee)';
 
   const values = {
     $name: name,
@@ -76,7 +79,7 @@ employeesRouter.post('/', (req, res, next) => {
             if (error) {
               throw error;
             }
-            res.status(201).json({employee: employee});
+            res.status(201).json({ employee });
           });
         }
     });
@@ -97,7 +100,12 @@ employeesRouter.put('/:employeeId', (req, res, next) => {
       return res.sendStatus(400);
     }
 
-    const sql = 'UPDATE Employee SET name = $name, position = $position, wage = $wage, is_current_employee = $isCurrentEmployee WHERE Employee.id = $employeeId';
+    const sql = 'UPDATE Employee SET ' +
+      'name = $name, ' +
+      'position = $position, ' +
+      'wage = $wage, ' +
+      'is_current_employee = $isCurrentEmployee ' +
+      'WHERE Employee.id = $employeeId ';
 
     const values = {
       $name: name,
@@ -113,7 +121,7 @@ employeesRouter.put('/:employeeId', (req, res, next) => {
       } else {
         db.get(`SELECT * FROM Employee WHERE Employee.id = ${req.params.employeeId}`,
           (error, employee) => {
-            res.status(200).json({employee: employee});
+            res.status(200).json({ employee });
           });
       }
     });
@@ -121,7 +129,10 @@ employeesRouter.put('/:employeeId', (req, res, next) => {
 
 // DELETE Routes
 employeesRouter.delete('/:employeeId', (req, res, next) => {
-  const sql = 'UPDATE Employee SET is_current_employee = 0 WHERE Employee.id = $employeeId';
+
+  const sql = 'UPDATE Employee SET ' +
+    'is_current_employee = 0 ' +
+    'WHERE Employee.id = $employeeId ';
   const values = { $employeeId: req.params.employeeId};
 
   db.run(sql, values, (error) => {
@@ -130,7 +141,7 @@ employeesRouter.delete('/:employeeId', (req, res, next) => {
     } else {
       db.get(`SELECT * FROM Employee WHERE Employee.id = ${req.params.employeeId}`,
         (error, employee) => {
-          res.status(200).json({employee: employee});
+          res.status(200).json({ employee });
         });
     }
   });
