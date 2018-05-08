@@ -17,6 +17,8 @@ const apiRouter = require('./routes/api');
 // Middleware
 app.use(bodyParser.json());
 app.use(cors());
+
+// API Route
 app.use('/api', apiRouter);
 
 // Logging

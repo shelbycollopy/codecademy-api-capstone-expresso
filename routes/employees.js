@@ -1,5 +1,5 @@
 const express = require('express');
-const employeesRouter = express.Router();
+const employeesRouter = express.Router({ mergeParams: true });
 const timesheetsRouter = require('./timesheets.js');
 
 // Database
@@ -7,7 +7,7 @@ const sqlite3 = require('sqlite3');
 const db = new sqlite3.Database(process.env.TEST_DATABASE || './database.sqlite');
 
 // /timesheets Route
-employeesRouter.use('/:employeedId/timesheets', timesheetsRouter);
+employeesRouter.use('/:employeeId/timesheets', timesheetsRouter);
 
 // Params
 employeesRouter.param('employeeId', (req, res, next, employeeId) => {
@@ -34,13 +34,14 @@ employeesRouter.get('/', (req, res, next) => {
     if (error) {
       next(error);
     } else {
-      res.status(200).json({ employees: employees });
+      res.status(200).json({ employees });
     }
   });
 });
 
-employeesRouter.get('/:employeeId', (req, res, next) => {
-  res.status(200).json({ employee: req.employee })
+employeesRouter.get('/:employeeId', (req, res) => {
+  const { employee } = req;
+  res.status(200).json({ employee })
 });
 
 // POST Routes
@@ -76,7 +77,7 @@ employeesRouter.post('/', (req, res, next) => {
             if (error) {
               throw error;
             }
-            res.status(201).json({employee: employee});
+            res.status(201).json({ employee });
           });
         }
     });
@@ -113,7 +114,7 @@ employeesRouter.put('/:employeeId', (req, res, next) => {
       } else {
         db.get(`SELECT * FROM Employee WHERE Employee.id = ${req.params.employeeId}`,
           (error, employee) => {
-            res.status(200).json({employee: employee});
+            res.status(200).json({ employee });
           });
       }
     });
@@ -130,7 +131,7 @@ employeesRouter.delete('/:employeeId', (req, res, next) => {
     } else {
       db.get(`SELECT * FROM Employee WHERE Employee.id = ${req.params.employeeId}`,
         (error, employee) => {
-          res.status(200).json({employee: employee});
+          res.status(200).json({ employee });
         });
     }
   });
