@@ -65,7 +65,9 @@ menuItemsRouter.post('/', (req, res, next) => {
         return res.sendStatus(400);
       }
 
-      const sql = 'INSERT INTO MenuItem (name, description, price, inventory, menu_id) VALUES ($name, $description, $price, $inventory, $menuId)';
+      const sql = 'INSERT INTO MenuItem ' +
+        '(name, description, price, inventory, menu_id) ' +
+        'VALUES ($name, $description, $price, $inventory, $menuId)';
       const values = {
         $name: name,
         $description: description,
@@ -81,6 +83,61 @@ menuItemsRouter.post('/', (req, res, next) => {
           db.get(`SELECT * FROM MenuItem WHERE MenuItem.id = ${this.lastID}`,
             (error, menuItem) => {
               res.status(201).json({ menuItem });
+            });
+        }
+      });
+    }
+  });
+});
+
+// PUT Route(s)
+menuItemsRouter.put('/:menuItemId', (req, res, next) => {
+
+  const {
+    name,
+    description,
+    price,
+    inventory
+  } = req.body.menuItem
+
+  const { menuId, menuItemId } = req.params;
+
+  const menuItemSql = 'SELECT * FROM MenuItem WHERE MenuItem.id = $menuItemId';
+  const menuItemValues = { $menuItemId: menuItemId };
+
+  db.get(menuItemSql, menuItemValues, (error, menuItem) => {
+    if (error) {
+      next(error);
+    } else {
+
+      if (!name || !price || !inventory) {
+        return res.sendStatus(400);
+      }
+
+      const sql = 'UPDATE MenuItem SET ' +
+        'name = $name, ' +
+        'description = $description, ' +
+        'price = $price, ' +
+        'inventory = $inventory, ' +
+        'menu_id = $menuId ' +
+        'WHERE MenuItem.id = $menuItemId';
+
+      const values = {
+        $name: name,
+        $description: description,
+        $price: price,
+        $inventory: inventory,
+        $menuId: menuId,
+        $menuItemId: menuItemId
+      };
+
+      db.run(sql, values, function(error) {
+        if (error) {
+          next(error);
+        } else {
+          db.get(`SELECT * FROM MenuItem WHERE MenuItem.id = ${menuItemId}`,
+            (error, menuItem) => {
+              res.status(200).json({ menuItem });
             });
         }
       });
